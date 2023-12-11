@@ -10,8 +10,15 @@ const path=require('path');
 const knex = require('./db');
 
 
-const { authenticationroutes}=require("./routes/loginroutes.js");
-const { consumer } = require('./consumer/create_admin_consum.js');
+const { authenticationroutes}=require("./routes/master_admin_auth.js");
+// const { producer } = require('./producer.js');
+
+
+const { create_admin_consumer } = require('./consumer/create_admin_consum.js');
+const { addclientroutes } = require('./routes/addclient.js');
+const { adminauthenticationroutes } = require('./routes/admin_auth.js');
+
+
 
 
 
@@ -39,6 +46,8 @@ app.use(express.json());
 app.use('/',express.static(path.join(__dirname,'public')));
 
 app.use('/master/admin/authentication',authenticationroutes)
+app.use('/admin/authentication',adminauthenticationroutes)
+app.use('/master/admin/client',addclientroutes)
 
 
 

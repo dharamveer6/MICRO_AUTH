@@ -2,9 +2,9 @@ const kafka = require('kafka-node');
 const knex = require('../db');
 const Consumer = kafka.Consumer;
 
-const client = new kafka.KafkaClient({ kafkaHost: 'localhost:9092' }); // Replace with your Kafka broker(s)
+const client = new kafka.KafkaClient({ kafkaHost: '127.0.0.1:9092' }); // Replace with your Kafka broker(s)
 
-const topics = [{ topic: 'create_admin'}]; // Replace 'my-topic' with your topic name
+const topics = [{ topic: 'create_admin3' }]; // Replace 'my-topic' with your topic name
 
 const options = {
   autoCommit: true,
@@ -13,29 +13,27 @@ const options = {
   encoding: 'utf8',
 };
 
-const consumer = new Consumer(client, topics, options);
+let create_admin_consumer;
 
-consumer.on('message', async(message) =>{
+function subscribeToTopic() {
+  create_admin_consumer = new Consumer(client, topics, options);
 
-    try{
-        console.log("consume call")
-          const ins=await knex("master_admins").insert(JSON.parse(message.value))
+  create_admin_consumer.on('message', async (message) => {
+    try {
+      console.log("consume call");
+      const ins = await knex("master_admins").insert(JSON.parse(message.value));
+    } catch (err) {
+      console.log(err);
     }
-    catch(err){
-console.log(err)
-    }
- 
-  
-});
+  });
 
-consumer.on('error', function (err) {
-  console.error(`Consumer error: ${err}`);
-});
+  create_admin_consumer.on('error', function (err) {
+    console.error(`Consumer error: ${err}`);
+    // Continue trying to subscribe to the topic
+    setTimeout(subscribeToTopic, 5000); // Retry after 5 seconds
+  });
+}
 
-consumer.on('offsetOutOfRange', function (err) {
-  console.error(`Offset out of range: ${err}`);
-});
+subscribeToTopic();
 
-
-module.exports={consumer}
-// Handle other events and errors as needed
+module.exports = { create_admin_consumer };
